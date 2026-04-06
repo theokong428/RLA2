@@ -1,0 +1,159 @@
+{
+  "k_values": [
+    80,
+    90,
+    100,
+    110,
+    120,
+    130,
+    140,
+    150,
+    160,
+    170
+  ],
+  "n_seeds": 3,
+  "best_k": 140,
+  "scan_time": 990.145003080368,
+  "per_k": {
+    "80": {
+      "best_cost": {
+        "total": 1192161.5204759594,
+        "build": 335000.0,
+        "maintenance": 268000.0,
+        "charging": 64161.52047595937,
+        "transport": 525000.0,
+        "n_stations": 67,
+        "transport_count": 525,
+        "seed": 300
+      },
+      "mean_total": 1198448.7118294185,
+      "std_total": 7309.430135833631
+    },
+    "90": {
+      "best_cost": {
+        "total": 1177168.756445265,
+        "build": 335000.0,
+        "maintenance": 268000.0,
+        "charging": 67168.75644526494,
+        "transport": 507000.0,
+        "n_stations": 67,
+        "transport_count": 507,
+        "seed": 300
+      },
+      "mean_total": 1188520.421054803,
+      "std_total": 8627.305271484842
+    },
+    "100": {
+      "best_cost": {
+        "total": 1177800.291776395,
+        "build": 335000.0,
+        "maintenance": 268000.0,
+        "charging": 67800.2917763951,
+        "transport": 507000.0,
+        "n_stations": 67,
+        "transport_count": 507,
+        "seed": 302
+      },
+      "mean_total": 1195075.270080471,
+      "std_total": 17171.649128960897
+    },
+    "110": {
+      "best_cost": {
+        "total": 1191101.5366676683,
+        "build": 335000.0,
+        "maintenance": 268000.0,
+        "charging": 70101.53666766814,
+        "transport": 518000.0,
+        "n_stations": 67,
+        "transport_count": 518,
+        "seed": 300
+      },
+      "mean_total": 1210792.7077931387,
+      "std_total": 17334.03237427759
+    },
+    "120": {
+      "best_cost": {
+        "total": 1173819.8700213754,
+        "build": 335000.0,
+        "maintenance": 268000.0,
+        "charging": 58819.87002137525,
+        "transport": 512000.0,
+        "n_stations": 67,
+        "transport_count": 512,
+        "seed": 300
+      },
+      "mean_total": 1191374.6795707745,
+      "std_total": 13664.792394118733
+    },
+    "130": {
+      "best_cost": {
+        "total": 1191808.8562515741,
+        "build": 335000.0,
+        "maintenance": 268000.0,
+        "charging": 68808.85625157417,
+        "transport": 520000.0,
+        "n_stations": 67,
+        "transport_count": 520,
+        "seed": 301
+      },
+      "mean_total": 1200051.6929478068,
+      "std_total": 10324.661130262968
+    },
+    "140": {
+      "best_cost": {
+        "total": 1161129.5180094484,
+        "build": 335000.0,
+        "maintenance": 268000.0,
+        "charging": 60129.51800944834,
+        "transport": 498000.0,
+        "n_stations": 67,
+        "transport_count": 498,
+        "seed": 302
+      },
+      "mean_total": 1187075.5618338075,
+      "std_total": 23545.800520945984
+    },
+    "150": {
+      "best_cost": {
+        "total": 1184686.1860020738,
+        "build": 335000.0,
+        "maintenance": 268000.0,
+        "charging": 59686.18600207381,
+        "transport": 522000.0,
+        "n_stations": 67,
+        "transport_count": 522,
+        "seed": 302
+      },
+      "mean_total": 1197724.8009962759,
+      "std_total": 13279.177938278835
+    },
+    "160": {
+      "best_cost": {
+        "total": 1186778.7300228816,
+        "build": 335000.0,
+        "maintenance": 268000.0,
+        "charging": 60778.73002288172,
+        "transport": 523000.0,
+        "n_stations": 67,
+        "transport_count": 523,
+        "seed": 302
+      },
+      "mean_total": 1200975.9964695948,
+      "std_total": 10956.130743393336
+    },
+    "170": {
+      "best_cost": {
+        "total": 1183130.7552168712,
+        "build": 335000.0,
+        "maintenance": 268000.0,
+        "charging": 66130.7552168711,
+        "transport": 514000.0,
+        "n_stations": 67,
+        "transport_count": 514,
+        "seed": 302
+      },
+      "mean_total": 1190058.3948573081,
+      "std_total": 9050.340761245065
+    }
+  }
+}

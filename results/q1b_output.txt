@@ -1,0 +1,121 @@
+Q1b: Construction Heuristic for Charging Station Placement
+============================================================
+Full data loaded: 1072 robots
+
+
+============================================================
+Q1b Construction: 20 robots
+  n=20, k=2, capacity/station=16
+============================================================
+  Time:      0.001s
+  Stations:  2
+  Chargers:  [8, 2]
+  Transport: 16 robots
+
+  Cost breakdown:
+    Build:       £10,000.00
+    Maintenance: £5,000.00
+    Charging:    £49.91
+    Transport:   £16,000.00
+    TOTAL:       £31,049.91
+  Feasible:  True
+
+============================================================
+Q1b Construction: 50 robots
+  n=50, k=4, capacity/station=16
+============================================================
+  Time:      0.000s
+  Stations:  4
+  Chargers:  [8, 3, 8, 7]
+  Transport: 42 robots
+
+  Cost breakdown:
+    Build:       £20,000.00
+    Maintenance: £13,000.00
+    Charging:    £88.94
+    Transport:   £42,000.00
+    TOTAL:       £75,088.94
+  Feasible:  True
+
+============================================================
+Q1b Construction: 100 robots
+  n=100, k=7, capacity/station=16
+============================================================
+  Time:      0.000s
+  Stations:  7
+  Chargers:  [8, 6, 8, 8, 7, 8, 5]
+  Transport: 87 robots
+
+  Cost breakdown:
+    Build:       £35,000.00
+    Maintenance: £25,000.00
+    Charging:    £133.66
+    Transport:   £87,000.00
+    TOTAL:       £147,133.66
+  Feasible:  True
+
+============================================================
+Q1b Construction: 1072 robots (full)
+  n=1072, k=67, capacity/station=16
+============================================================
+  Time:      0.068s
+  Stations:  67
+  Chargers:  [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8]
+  Transport: 732 robots
+
+  Cost breakdown:
+    Build:       £335,000.00
+    Maintenance: £268,000.00
+    Charging:    £4,817.41
+    Transport:   £732,000.00
+    TOTAL:       £1,339,817.41
+  Feasible:  True
+
+===========================================================================
+Q1b vs Q1a Comparison (small instances)
+===========================================================================
+Instance            Q1b Cost     Q1a Cost      Gap   Q1b Time   Q1a Time
+---------------------------------------------------------------------------
+20 robots       £    31,050 £    31,653    -1.9%     0.001s    1800.2s
+50 robots       £    75,089 £    85,431   -12.1%     0.000s    1800.5s
+100 robots      £   147,134 £   174,825   -15.8%     0.000s    1801.2s
+
+============================================================
+Q1b Full Instance Summary
+============================================================
+  Stations:       67
+  Total chargers: 536
+  Transport:      732 robots
+  Total cost:     £1,339,817.41
+  Runtime:        0.068s
+  Feasible:       True
+
+Results saved to C:\Users\15867\OneDrive\Desktop\RLA2\results\q1b_results.json
+
+===========================================================================
+Q1b K-Scan: Station Count Sensitivity Analysis
+===========================================================================
+  k values:  [80, 90, 100, 110, 120, 130, 140, 150, 160, 170]
+  Seeds/k:   10
+  Total runs: 100
+  Parallel scan completed in 2.9s
+
+      k    Best Cost    Mean Cost        Std Stations  Transport
+  -----------------------------------------------------------------
+     80 £ 1,313,200 £ 1,328,745 £  10,867       80        636
+     90 £ 1,318,020 £ 1,329,311 £   7,174       90        587
+    100 £ 1,328,833 £ 1,341,359 £   8,527      100        547
+    110 £ 1,326,723 £ 1,340,740 £   9,842      110        489
+    120 £ 1,312,333 £ 1,345,097 £  13,054      120        422
+    130 £ 1,334,045 £ 1,360,360 £  13,008      130        391
+    140 £ 1,348,355 £ 1,364,504 £   8,117      140        354
+    150 £ 1,355,347 £ 1,386,872 £  13,979      150        308
+    160 £ 1,391,143 £ 1,410,033 £  11,547      160        293
+    170 £ 1,401,669 £ 1,426,305 £  16,392      170        250
+
+  >>> Optimal k = 120, cost = £1,312,333
+  K-scan results saved to C:\Users\15867\OneDrive\Desktop\RLA2\results\q1b_k_scan.json
+
+  Best-K solution: k=120, 120 stations, cost=£1,312,333
+
+Output log saved to C:\Users\15867\OneDrive\Desktop\RLA2\results\q1b_output.txt

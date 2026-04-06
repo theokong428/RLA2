@@ -1,0 +1,949 @@
+\documentclass[11pt,a4paper]{article}
+
+% ── Encoding & fonts ──────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% ── Page layout ───────────────────────────────────────────────────────────
+\usepackage[margin=2.5cm]{geometry}
+
+% ── Mathematics ───────────────────────────────────────────────────────────
+\usepackage{amsmath, amssymb, mathtools}
+
+% ── Graphics & figures ────────────────────────────────────────────────────
+\usepackage{graphicx}
+\graphicspath{{../results/}}
+\usepackage{float}
+\usepackage{subcaption}
+
+% ── Tables ────────────────────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% ── Hyperlinks & cross-references ─────────────────────────────────────────
+\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+
+% ── Algorithms ────────────────────────────────────────────────────────────
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% ── Misc ──────────────────────────────────────────────────────────────────
+\usepackage{enumitem}
+\usepackage{parskip}
+
+% ── Bibliography ──────────────────────────────────────────────────────────
+\usepackage[numbers,sort&compress]{natbib}
+
+% ── Title ─────────────────────────────────────────────────────────────────
+\title{Optimal Charging Station Placement for Antarctic Surveying Robots\\[6pt]
+       \large Risk and Logistics --- Assignment 2}
+\author{} % TODO: add name and student ID
+\date{}
+
+% ===========================================================================
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report addresses the problem of optimally placing charging stations for 1,072 surveying robots operating in Antarctica.
+We formulate the deterministic problem as a Mixed-Integer Nonlinear Programme (MINLP) and solve small instances exactly using the FICO Xpress solver (Q1a).
+A two-phase greedy construction heuristic based on $k$-medoids clustering provides feasible solutions for all instance sizes (Q1b).
+An Adaptive Large Neighbourhood Search (ALNS) framework with Late Acceptance Hill-Climbing (LAHC) acceptance criterion significantly improves the constructed solutions, achieving an 18.0\% cost reduction on the full instance (Q1c).
+Finally, we extend the model to a two-stage stochastic programme incorporating range uncertainty across 100 scenarios, solved via Benders decomposition and a Stochastic ALNS variant.
+Risk-averse analysis using CVaR and decision-value metrics (VSS, EVPI) quantify the benefit of the stochastic approach (Q2).
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% ===================================================================
+% Q1a: MINLP
+% ===================================================================
+\section{Q1a: Mixed-Integer Nonlinear Programme}
+\label{sec:q1a}
+
+\subsection{Problem Description}
+
+We seek to determine the locations of charging stations, the number of chargers installed at each station, and the assignment of robots to stations so as to minimise the total cost comprising build, maintenance, charging, and human transport costs.
+Station locations are continuous decision variables (stations can be placed anywhere in Antarctica), making the distance-linking constraint nonlinear and the overall formulation a Mixed-Integer Nonlinear Programme.
+
+\subsection{Mathematical Formulation}
+\label{sec:q1a-model}
+
+\paragraph{Sets.}
+\begin{tabular}{@{}ll@{}}
+$\mathcal{I} = \{1,\dots,n\}$ & set of robots, $n = 1{,}072$ \\
+$\mathcal{J} = \{1,\dots,J\}$ & set of candidate charging stations
+\end{tabular}
+
+\medskip
+\paragraph{Parameters.}
+\begin{tabular}{@{}lll@{}}
+$c_b = 5{,}000$   & (\pounds/station)  & build cost per station \\
+$c_m = 500$        & (\pounds/charger)  & maintenance cost per charger \\
+$c_c = 0.42$       & (\pounds/mile)     & charging cost per mile (constant up to $r_{\max}$) \\
+$c_h = 1{,}000$    & (\pounds/robot)    & human transport cost per robot \\
+$m = 8$            &                    & maximum chargers per station \\
+$q = 2$            &                    & robots served per charger \\
+$r_i$              & (miles)            & deterministic range of robot $i$ \\
+$(\hat{x}_i, \hat{y}_i)$ & (miles)     & projected coordinates of robot $i$ \\
+$M$                & (miles)            & big-M constant (bounding-box diagonal) \\
+$\varepsilon = 10^{-4}$ &              & numerical stability constant
+\end{tabular}
+
+\medskip
+\noindent
+Robot coordinates are projected from geodetic (latitude, longitude) to a planar system via an azimuthal equidistant projection centred on the South Pole:
+\begin{equation}\label{eq:proj}
+  \rho = R_\oplus \!\left(\tfrac{\pi}{2} + \phi\right), \quad
+  \hat{x} = \rho \cos\lambda, \quad
+  \hat{y} = \rho \sin\lambda,
+\end{equation}
+where $R_\oplus = 3{,}958.8$ miles, $\phi$ is latitude (negative for the Southern Hemisphere), and $\lambda$ is longitude.
+
+\medskip
+\paragraph{Decision variables.}
+\begin{tabular}{@{}ll@{}}
+$y_j \in \{0,1\}$           & $= 1$ if station $j$ is opened \\
+$n_j \in \{0,1,\dots,m\}$   & number of chargers at station $j$ \\
+$s_j^x, s_j^y \in \mathbb{R}$ & projected coordinates of station $j$ \\
+$a_{ij} \in \{0,1\}$        & $= 1$ if robot $i$ is assigned to station $j$ \\
+$h_i \in \{0,1\}$           & $= 1$ if robot $i$ requires human transport \\
+$D_i \geq 0$                & distance from robot $i$ to its assigned station
+\end{tabular}
+
+\medskip
+\paragraph{Objective function.}
+\begin{equation}\label{eq:q1a-obj}
+  \min \;\;
+  \underbrace{\sum_{j \in \mathcal{J}} c_b \, y_j}_{\text{build}}
+  \;+\;
+  \underbrace{\sum_{j \in \mathcal{J}} c_m \, n_j}_{\text{maintenance}}
+  \;+\;
+  \underbrace{c_c \sum_{i \in \mathcal{I}} D_i \,(1 - h_i)}_{\text{self-flying transport}}
+  \;+\;
+  \underbrace{c_h \sum_{i \in \mathcal{I}} h_i}_{\text{human transport}}
+\end{equation}
+
+\medskip
+\paragraph{Constraints.}
+\begin{alignat}{3}
+  & \sum_{j \in \mathcal{J}} a_{ij} = 1
+    && \qquad \forall\, i \in \mathcal{I}
+    \label{eq:c1} \tag{C1} \\[4pt]
+  & a_{ij} \leq y_j
+    && \qquad \forall\, i \in \mathcal{I},\; j \in \mathcal{J}
+    \label{eq:c2} \tag{C2} \\[4pt]
+  & \sum_{i \in \mathcal{I}} a_{ij} \leq n_j \, q
+    && \qquad \forall\, j \in \mathcal{J}
+    \label{eq:c3} \tag{C3} \\[4pt]
+  & n_j \leq m \, y_j
+    && \qquad \forall\, j \in \mathcal{J}
+    \label{eq:c4} \tag{C4} \\[4pt]
+  & D_i \geq \sqrt{(\hat{x}_i - s_j^x)^2 + (\hat{y}_i - s_j^y)^2 + \varepsilon} - M(1 - a_{ij})
+    && \qquad \forall\, i \in \mathcal{I},\; j \in \mathcal{J}
+    \label{eq:c5} \tag{C5} \\[4pt]
+  & D_i \leq r_i + M \, h_i
+    && \qquad \forall\, i \in \mathcal{I}
+    \label{eq:c6} \tag{C6} \\[4pt]
+  & s_j^x \leq s_{j+1}^x
+    && \qquad \forall\, j \in \{1,\dots,J{-}1\}
+    \label{eq:c7} \tag{C7}
+\end{alignat}
+
+\subsection{Explanation of Objective and Constraints}
+\label{sec:q1a-explain}
+
+\paragraph{Objective~\eqref{eq:q1a-obj}.}
+Minimises the total cost.
+Since every robot recharges from zero to $r_{\max}$ upon arrival, the recharging cost $c_c \cdot r_{\max}$ is identical for every robot regardless of type and is therefore omitted from the optimisation as a constant.
+The third cost component represents the \emph{flying cost} incurred by self-flying robots ($h_i = 0$): a robot flying distance $D_i$ to its assigned station consumes $c_c \cdot D_i$ in flight energy.
+Transported robots ($h_i = 1$) do not fly to the station and thus incur no flight cost.
+
+\paragraph{Constraint~\eqref{eq:c1}: Single assignment.}
+Each robot is assigned to exactly one charging station.
+
+\paragraph{Constraint~\eqref{eq:c2}: Assignment--opening link.}
+A robot can be assigned to station $j$ only if that station is open ($y_j = 1$).
+
+\paragraph{Constraint~\eqref{eq:c3}: Station capacity.}
+The number of robots assigned to station $j$ may not exceed its capacity $n_j \cdot q$, where each charger serves at most $q = 2$ robots.
+
+\paragraph{Constraint~\eqref{eq:c4}: Charger limit.}
+Chargers can only be installed at open stations, and the number is capped at $m = 8$.
+
+\paragraph{Constraint~\eqref{eq:c5}: Distance linking (nonlinear).}
+When robot~$i$ is assigned to station~$j$ ($a_{ij}=1$), the big-$M$ term vanishes, forcing $D_i$ to be at least the Euclidean distance in the projected plane.
+When $a_{ij}=0$ the constraint is relaxed.
+A small constant $\varepsilon$ inside the square root ensures numerical stability at zero distance.
+This constraint makes the formulation a Mixed-Integer \emph{Nonlinear} Programme.
+
+\paragraph{Constraint~\eqref{eq:c6}: Transport flag.}
+If the distance $D_i$ exceeds the robot's range $r_i$, the transport flag $h_i$ must be set to~1 (incurring cost $c_h$).
+When $h_i = 1$ the right-hand side is relaxed by $M$, allowing any distance.
+
+\paragraph{Constraint~\eqref{eq:c7}: Symmetry breaking.}
+Stations are ordered by their projected $x$-coordinate to eliminate equivalent permutations and reduce the search space.
+
+\medskip
+\noindent
+\textbf{Post-processing.}
+After solving, projected station coordinates $(s_j^x, s_j^y)$ are converted back to geodetic coordinates via the inverse projection, and all distances are re-evaluated using the Haversine great-circle formula.
+
+\subsection{Implementation and Results}
+
+The MINLP is solved using the FICO Xpress 9.7 nonlinear solver with a time limit of 1,800\,s per instance.
+Due to the computational complexity of the nonlinear distance constraint~\eqref{eq:c5}, the model is tractable only for small subsets.
+
+\begin{table}[H]
+\centering
+\caption{Q1a MINLP results on small instances.}
+\label{tab:q1a}
+\begin{tabular}{lrrr}
+\toprule
+Instance & Total cost (\pounds) & Stations & Time (s) \\
+\midrule
+20 robots  & 31,653  & 2 & 1,800 \\
+50 robots  & 85,431  & 4 & 1,800 \\
+100 robots & 174,825 & 7 & 1,800 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+All instances hit the time limit, indicating the MINLP solutions are upper bounds rather than certified optima.
+The solver struggles with the bilinear term $D_i(1-h_i)$ in the objective and the nonlinear distance constraints.
+
+% TODO: replace with updated Q1a results after re-running with corrected charging formula
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+  \includegraphics[width=\textwidth]{q1a_map_20.png}
+  \caption{20 robots}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+  \includegraphics[width=\textwidth]{q1a_map_50.png}
+  \caption{50 robots}
+\end{subfigure}
+\caption{Q1a MINLP solution maps for small instances.}
+\label{fig:q1a-maps}
+\end{figure}
+
+
+% ===================================================================
+% Q1b: Construction Heuristic
+% ===================================================================
+\newpage
+\section{Q1b: Construction Heuristic}
+\label{sec:q1b}
+
+\subsection{Algorithm Design}
+
+The construction heuristic employs a two-phase greedy approach to generate an initial feasible solution efficiently.
+
+\paragraph{Phase 1: $k$-medoids clustering.}
+The $k$-medoids algorithm is preferred over $k$-means because medoids are constrained to actual robot positions, ensuring that candidate station locations are geographically meaningful; it is also more robust to outliers than centroid-based clustering. Robot positions are clustered into $k$ groups using the Partitioning Around Medoids (PAM) algorithm with Haversine distances.
+Medoid locations (actual robot positions) serve as station candidates.
+Initial medoids are selected via the farthest-first heuristic to ensure geographic spread.
+
+\paragraph{Phase 2: Greedy nearest-feasible assignment.}
+Robots are processed in order of increasing distance to their nearest station.
+Each robot is assigned to the nearest station with available capacity ($\text{count}_j < n_j \cdot q$).
+If the nearest station is full, chargers are added (up to $m$) or the next-nearest station is tried.
+If no feasible station exists, a new station is opened at the robot's location.
+
+\begin{algorithm}[H]
+\caption{Two-phase greedy construction heuristic}
+\label{alg:construction}
+\begin{algorithmic}[1]
+\REQUIRE Robot locations $\{(\text{lat}_i, \text{lon}_i)\}_{i \in \mathcal{I}}$, number of clusters $k$
+\ENSURE Feasible solution $(y, n, s, a, h)$
+\STATE Compute pairwise Haversine distance matrix $\Delta \in \mathbb{R}^{n \times n}$
+\STATE $\text{medoids}, \text{labels} \gets \text{PAM}(\Delta, k)$
+\STATE Set station locations: $s_j \gets \text{location of medoid}_j$ for $j = 1, \dots, k$
+\STATE Open all stations: $y_j \gets 1$,\;
+       $n_j \gets \min\!\left(\lceil |\text{cluster}_j| / q \rceil,\; m\right)$
+\STATE Sort robots by distance to nearest station (ascending)
+\FOR{each robot $i$ in sorted order}
+  \STATE $\text{assigned} \gets \textbf{false}$
+  \FOR{each station $j$ in order of increasing $\delta_{ij}$}
+    \IF{$\text{count}_j < n_j \cdot q$}
+      \STATE $a_i \gets j$;\; $\text{count}_j \gets \text{count}_j + 1$;\;
+             $\text{assigned} \gets \textbf{true}$;\; \textbf{break}
+    \ELSIF{$n_j < m$}
+      \STATE $n_j \gets n_j + 1$;\; $a_i \gets j$;\;
+             $\text{count}_j \gets \text{count}_j + 1$;\;
+             $\text{assigned} \gets \textbf{true}$;\; \textbf{break}
+    \ENDIF
+  \ENDFOR
+  \IF{\textbf{not} $\text{assigned}$}
+    \STATE Open new station at robot $i$'s location;\; $a_i \gets$ new station
+  \ENDIF
+\ENDFOR
+\STATE Set $h_i \gets \mathbf{1}[\delta_{i,a_i} > r_i]$ for all $i \in \mathcal{I}$
+\RETURN solution
+\end{algorithmic}
+\end{algorithm}
+
+For small instances, $k$ is set to $k_{\min} = \lceil n/(m \cdot q) \rceil$ directly, yielding $k = 2, 4, 7$ for the 20-, 50-, and 100-robot instances respectively.
+\subsection{Results}
+
+\begin{table}[H]
+\centering
+\caption{Q1b construction heuristic results.}
+\label{tab:q1b}
+\begin{tabular}{lrrrr}
+\toprule
+Instance & Total cost (\pounds) & Stations & Transport & Time (s) \\
+\midrule
+20 robots   & 31,050    & 2   & 16  & $<$0.1 \\
+50 robots   & 75,089    & 4   & 42  & $<$0.1 \\
+100 robots  & 147,134   & 7   & 87  & $<$0.1 \\
+1072 robots & 1,339,817 & 67  & 732 & $<$0.1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+The heuristic produces feasible solutions for all instance sizes in under 1 second.
+For the small instances, the Q1b solution is competitive with the MINLP upper bound (e.g.\ \pounds31,050 vs.\ \pounds31,653 for 20 robots), demonstrating the quality of the greedy construction.
+The initial value of $k$ for the full instance is determined via a preliminary scan (Section~\ref{sec:q1c-kscan}).
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+  \includegraphics[width=\textwidth]{q1b_map_20.png}
+  \caption{20 robots}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+  \includegraphics[width=\textwidth]{q1b_map_1072.png}
+  \caption{1,072 robots (full instance)}
+\end{subfigure}
+\caption{Q1b construction heuristic solution maps.}
+\label{fig:q1b-maps}
+\end{figure}
+
+\newpage
+\section{Q1c: Improvement Heuristic --- ALNS + LAHC}
+\label{sec:q1c}
+
+\subsection{Algorithm Overview}
+
+We improve the Q1b solution using an Adaptive Large Neighbourhood Search (ALNS) framework \cite{ropke2006} with a Late Acceptance Hill-Climbing (LAHC) acceptance criterion \cite{burke2017}.
+At each iteration, the algorithm either applies a destroy--repair pair (with probability $p_{\text{large}}$) or a local search operator (with probability $1 - p_{\text{large}}$), selected via roulette-wheel with adaptive weights.
+
+\subsection{Operator Design}
+
+\paragraph{Destroy operators.}
+\begin{itemize}[nosep]
+  \item \textbf{D1 --- Random Remove}: Remove up to $\lfloor 0.20 \cdot |\mathcal{J}^{\text{open}}| \rfloor$ randomly selected stations.
+  \item \textbf{D2 --- Worst Remove}: Remove stations with the highest \emph{total} per-station cost contribution (build $+$ maintenance $+$ charging $+$ transport), targeting busy high-cost hubs.
+  \item \textbf{D3 --- Zone Remove}: Select a random station as centre; remove all stations within a distance percentile radius.
+  \item \textbf{D4 --- Merge Stations}: Merge 1--3 nearest station pairs by removing the smaller station in each pair.
+  \item \textbf{D5 --- Split Station}: Identify a high-cost station (from top-5 by operating cost), unassign its farthest half of robots.
+\end{itemize}
+
+\paragraph{Repair operators.}
+\begin{itemize}[nosep]
+  \item \textbf{R1 --- Greedy Insert}: Assign unassigned robots to nearest feasible stations; open new stations when the nearest station distance exceeds a threshold ratio of the robot's range.
+  \item \textbf{R2 --- Regret Insert}: Prioritise robots with the largest regret (gap between best and second-best insertion cost).
+  \item \textbf{R3 --- Cluster Repair}: Apply $k$-medoids to unassigned robots, creating new station clusters.
+\end{itemize}
+
+\paragraph{Local search operators.}
+\begin{itemize}[nosep]
+  \item \textbf{L1 --- Station Relocate}: Weiszfeld-like step moving a station towards the weighted centroid of its assigned robots.
+  \item \textbf{L2 --- Charger Adjust}: Add or remove a charger at a random station.
+  \item \textbf{L3 --- Robot Swap}: Swap two randomly selected robots between different stations.
+  \item \textbf{L4 --- Robot Reassign}: Move a random robot to a different station.
+\end{itemize}
+
+\subsection{Acceptance Criterion: LAHC}
+
+The Late Acceptance Hill-Climbing criterion maintains a circular history list of length $L$.
+A candidate solution $f'$ is accepted if:
+\begin{equation}
+  f' < f_{v} \quad \text{or} \quad f' < f_{\text{current}},
+\end{equation}
+where $f_v = \text{history}[\text{iter} \bmod L]$ is the cost recorded $L$ iterations ago.
+This provides automatic cooling: early iterations accept large deteriorations (the history is initialised with the initial cost), while later iterations become increasingly selective.
+
+\subsection{Adaptive Weight Update}
+
+Operator weights are updated every $\tau = 200$ iterations using the Ropke--Pisinger scheme \cite{ropke2006}:
+\begin{equation}
+  w_k \leftarrow (1 - \rho)\, w_k + \rho \cdot \frac{\pi_k}{\theta_k},
+\end{equation}
+where $\pi_k$ is the accumulated reward (new best: $\sigma_1 = 33$, improving: $\sigma_2 = 9$, accepted: $\sigma_3 = 1$), $\theta_k$ is the usage count, and $\rho = 0.1$ is the reaction factor.
+At each iteration, destroy and repair operators are selected independently via roulette-wheel proportional to their current weights, which explains why D2 accumulates disproportionately more selections once it earns higher rewards in early iterations.
+
+\subsection{Initial Station Count Selection}
+\label{sec:q1c-kscan}
+
+The number of initial stations $k$ for $k$-medoids is a critical hyperparameter.
+The minimum feasible value is $k_{\min} = \lceil n / (m \cdot q) \rceil = \lceil 1{,}072/16 \rceil = 67$.
+A pilot convergence study is conducted: the ALNS is run with $k \in \{80, 100, 120, 140, 170\}$ for 50,000 iterations each, revealing a U-shaped cost curve.
+Based on this analysis, $k = 123$ is selected for the final run with 20,000 iterations on the full instance (30,000 for small instances).
+
+\subsection{Key Parameters}
+
+\begin{table}[H]
+\centering
+\caption{ALNS+LAHC parameters for the full instance.}
+\label{tab:alns-params}
+\begin{tabular}{llr}
+\toprule
+Parameter & Description & Value \\
+\midrule
+$k$                              & Initial station count ($k$-medoids)              & 123 \\
+\texttt{max\_iter}               & Maximum iterations (full / small)                & 20,000 / 30,000 \\
+$L$                              & LAHC history length                              & 5,000 \\
+$p_{\text{large}}$               & Probability of destroy+repair                    & 0.60 \\
+$\tau$                           & Weight update segment length                     & 200 \\
+$\rho$                           & Reaction factor                                  & 0.10 \\
+$\sigma_1 / \sigma_2 / \sigma_3$ & Reward: new best / improving / accepted          & 33 / 9 / 1 \\
+D1 max ratio                     & Max fraction of stations destroyed (Random)      & 0.20 \\
+D2 max ratio                     & Max fraction of stations destroyed (Worst)       & 0.15 \\
+D3 zone fraction                 & Max fraction of stations in zone removal         & 0.20 \\
+Repair distance ratio            & Distance/range threshold for opening new station & 0.80 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Results}
+
+Tables~\ref{tab:q1c-comparison} and~\ref{tab:q1c-breakdown} summarise the results.
+The ALNS achieves up to 18.0\% improvement over the Q1b greedy construction on the full instance.
+
+\begin{table}[H]
+\centering
+\caption{Performance comparison across all methods.}
+\label{tab:q1c-comparison}
+\begin{tabular}{lrrrr}
+\toprule
+Instance & Q1a MINLP (\pounds) & Q1b Greedy (\pounds) & Q1c ALNS (\pounds) & Improvement \\
+\midrule
+20 robots   & 31,653  & 31,050    & 31,050    & 0.0\% \\
+50 robots   & 85,431  & 75,089    & 71,698    & 4.5\% \\
+100 robots  & 174,825 & 147,134   & 133,472   & 9.3\% \\
+1072 robots & n/a     & 1,339,817 & 1,098,803 & 18.0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Q1c ALNS cost breakdown for the full instance (1,072 robots).}
+\label{tab:q1c-breakdown}
+\begin{tabular}{lr}
+\toprule
+Component & Cost (\pounds) \\
+\midrule
+Build (75 stations $\times$ \pounds5,000)      & 375,000 \\
+Maintenance (541 chargers $\times$ \pounds500) & 270,500 \\
+Charging                                        & 11,303 \\
+Transport (442 robots $\times$ \pounds1,000)   & 442,000 \\
+\midrule
+\textbf{Total} & \textbf{1,098,803} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+The best solution is found at approximately iteration 16,000 (Figure~\ref{fig:q1c-convergence}), after which the algorithm maintains exploration but does not discover further improvements.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{q1c_alns_best_cost_1072.png}
+\caption{ALNS convergence curve for the full instance (20,000 iterations).}
+\label{fig:q1c-convergence}
+\end{figure}
+
+\subsection{Operator Analysis}
+\label{sec:q1c-operators}
+
+Table~\ref{tab:operator-stats} summarises operator usage and effectiveness over 20,000 iterations on the full instance.
+
+\begin{table}[H]
+\centering
+\caption{Operator usage and effectiveness (full instance, 20,000 iterations).}
+\label{tab:operator-stats}
+\begin{tabular}{llrr}
+\toprule
+Type & Operator & Uses & Improvements \\
+\midrule
+\multirow{5}{*}{Destroy}
+ & D1: Random Remove  & 2,230  & 0 \\
+ & D2: Worst Remove   & 4,878  & 25 \\
+ & D3: Zone Remove    & 1,415  & 8 \\
+ & D4: Merge Stations & 2,394  & 1 \\
+ & D5: Split Station  & 1,020  & 1 \\
+\midrule
+\multirow{3}{*}{Repair}
+ & R1: Greedy Insert  & 843    & 0 \\
+ & R2: Regret Insert  & 700    & 0 \\
+ & R3: Cluster Repair & 10,394 & 35 \\
+\midrule
+\multirow{4}{*}{Local}
+ & L1: Station Relocate & 5,481 & 4 \\
+ & L2: Charger Adjust   & 547   & 0 \\
+ & L3: Robot Swap       & 1,394 & 0 \\
+ & L4: Robot Reassign   & 641   & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+Key observations:
+\begin{itemize}[nosep]
+  \item D2 (Worst Remove) paired with R3 (Cluster Repair) is the most effective combination,
+  accounting for the majority of improvements.
+  The adaptive weight mechanism correctly allocates more selections to these operators, as
+  D2 and R3 earn higher rewards in early iterations and are consequently favoured by the
+  roulette-wheel throughout the run.
+  D2 uses total per-station cost (build $+$ maintenance $+$ charging $+$ transport) as its
+  removal criterion; this tends to target busy hubs with many assigned robots rather than
+  stations with the worst cost-per-robot ratio, which could be an alternative design worth
+  exploring.
+  \item D5 (Split Station) yields only 1 improvement across 1,020 uses, as the build cost
+  (\pounds5{,}000 per station) outweighs most travel savings.
+  Nevertheless, D5 is structurally necessary alongside D4 to allow bidirectional exploration
+  of the station count.
+  \item Local search operators contribute minimally, as the charging cost is small relative to
+  the build and transport costs.
+\end{itemize}
+
+\subsection{Discussion}
+
+The ALNS achieves an 18.0\% improvement over the Q1b greedy construction, reducing the total cost
+from \pounds1,339,817 to \pounds1,098,803.
+The dominant cost components are build (\pounds375,000, 34.1\%), transport (\pounds442,000,
+40.2\%), and maintenance (\pounds270,500, 24.6\%), while charging cost is negligible
+(\pounds11,303, 1.0\%).
+This cost structure implies that the key trade-off is between opening more stations (reducing
+transport) and the fixed cost of stations and chargers.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{q1c_alns_map_1072.png}
+\caption{Q1c ALNS solution map for the full 1,072-robot instance.}
+\label{fig:q1c-map}
+\end{figure}
+
+
+
+% ===================================================================
+% Q2: Stochastic Programme
+% ===================================================================
+\newpage
+\section{Q2: Stochastic Optimisation under Range Uncertainty}
+\label{sec:q2}
+
+\subsection{Problem Extension}
+
+In practice, robot ranges are uncertain.
+We are given 100 scenarios $\mathcal{S} = \{1, \dots, 100\}$, each specifying a range $r_i^s$ for every robot.
+Station locations and charger numbers must be decided \emph{before} the scenario is revealed (first stage), while robot-to-station assignments can adapt to the realised ranges (second stage).
+Additionally, a charging probability $p_i^s = \exp(-\lambda^2 (r_i^s - r_{\min})^2)$ reflects the likelihood that robot $i$ needs charging in scenario $s$.
+
+\subsection{Two-Stage Stochastic Programme}
+\label{sec:q2-model}
+
+\paragraph{Sets.}
+\begin{tabular}{@{}ll@{}}
+$\mathcal{I} = \{1,\dots,n\}$  & set of robots \\
+$\mathcal{J} = \{1,\dots,J\}$  & set of candidate station locations (fixed) \\
+$\mathcal{S} = \{1,\dots,S\}$  & set of scenarios, $S = 100$
+\end{tabular}
+
+\medskip
+\paragraph{Parameters.}
+\begin{tabular}{@{}lll@{}}
+$c_b, c_m, c_c, c_h, m, q$ &  & as in Q1a \\
+$d_{ij}$ & (miles) & Haversine distance from robot $i$ to candidate station $j$ \\
+$r_i^s$  & (miles) & range of robot $i$ in scenario $s$ \\
+$\lambda = 0.012$,\; $r_{\min} = 10$  & & charging probability parameters \\
+$p_i^s = \exp\!\bigl(-\lambda^2 (r_i^s - r_{\min})^2\bigr)$ & & probability robot $i$ needs charging in scenario $s$ \\
+$t_{ij}^s = \mathbf{1}\{d_{ij} > r_i^s\}$ & & transport indicator \\
+$f_{ij}^s = 1 - t_{ij}^s$ & & self-flying indicator \\
+$c_{ij}^s = p_i^s \bigl(c_c \, d_{ij} \, f_{ij}^s + c_h \, t_{ij}^s\bigr)$ & & scenario-specific assignment cost
+\end{tabular}
+
+\medskip
+\noindent
+Note that the charging cost $c_c \cdot d_{ij}$ applies only when the robot self-flies ($f_{ij}^s = 1$), consistent with the deterministic model in Q1a.
+
+\medskip
+\paragraph{Decision variables.}
+
+\noindent\textit{First stage} (here-and-now):
+\begin{tabular}{@{}ll@{}}
+$y_j \in \{0,1\}$           & $= 1$ if station $j$ is opened \\
+$n_j \in \{0,1,\dots,m\}$   & number of chargers at station $j$
+\end{tabular}
+
+\medskip
+\noindent\textit{Second stage} (wait-and-see, per scenario $s$):
+\begin{tabular}{@{}ll@{}}
+$x_{ij}^s \in [0,1]$  & fraction of robot $i$ assigned to station $j$ in scenario $s$ \\
+$u_i^s \geq 0$        & slack variable for robot $i$ in scenario $s$
+\end{tabular}
+
+\medskip
+\paragraph{Objective function.}
+\begin{equation}\label{eq:q2-obj}
+  \min \;\;
+  \underbrace{\sum_{j \in \mathcal{J}} \bigl(c_b \, y_j + c_m \, n_j\bigr)}_{\text{first stage}}
+  \;+\;
+  \frac{1}{S} \sum_{s \in \mathcal{S}}
+  \underbrace{\left(\sum_{i \in \mathcal{I}} \sum_{j \in \mathcal{J}} c_{ij}^s \, x_{ij}^s + P \sum_{i \in \mathcal{I}} u_i^s\right)}_{\text{second-stage cost } Q^s}
+\end{equation}
+
+\medskip
+\paragraph{First-stage constraints.}
+\begin{alignat}{3}
+  & n_j \leq m \, y_j
+    && \qquad \forall\, j \in \mathcal{J}
+    \label{eq:s1} \tag{S1} \\[4pt]
+  & \sum_{j \in \mathcal{J}} n_j \, q \geq n
+    && \label{eq:s2} \tag{S2}
+\end{alignat}
+
+\paragraph{Second-stage constraints ($\forall\, s \in \mathcal{S}$).}
+\begin{alignat}{3}
+  & \sum_{j \in \mathcal{J}} x_{ij}^s + u_i^s = 1
+    && \qquad \forall\, i \in \mathcal{I}
+    \label{eq:s3} \tag{S3} \\[4pt]
+  & \sum_{i \in \mathcal{I}} x_{ij}^s \leq n_j \, q
+    && \qquad \forall\, j \in \mathcal{J}
+    \label{eq:s4} \tag{S4}
+\end{alignat}
+
+\subsection{Explanation of Objective and Constraints}
+
+\paragraph{Objective~\eqref{eq:q2-obj}.}
+Minimises the sum of first-stage infrastructure costs and the expected second-stage operating cost over all scenarios.
+The cost coefficient $c_{ij}^s$ incorporates the charging probability $p_i^s$, the distance-dependent charging cost (self-flying only), and the flat transport penalty.
+The penalty $P = 10^5$ on slack variables $u_i^s$ ensures all robots are assigned whenever capacity permits.
+
+\paragraph{Constraint~\eqref{eq:s1}: Charger--opening link.}
+Identical to \eqref{eq:c4}: chargers require an open station.
+
+\paragraph{Constraint~\eqref{eq:s2}: Aggregate capacity.}
+Total installed capacity must cover all robots. This tightening constraint accelerates Benders convergence.
+
+\paragraph{Constraint~\eqref{eq:s3}: Assignment (per scenario).}
+Each robot is fully assigned in every scenario; the slack $u_i^s$ absorbs capacity shortfalls.
+
+\paragraph{Constraint~\eqref{eq:s4}: Capacity (per scenario).}
+Station capacity is respected in each scenario independently.
+
+
+\subsection{Solution Method: Benders Decomposition}
+\label{sec:benders}
+
+The two-stage structure is exploited via Benders decomposition (L-shaped method).
+
+\paragraph{Master problem.}
+Contains first-stage variables and per-scenario cost approximations $\theta_s$:
+\begin{equation}\label{eq:master}
+  \min \;\;
+  \sum_{j} \bigl(c_b \, y_j + c_m \, n_j\bigr)
+  \;+\;
+  \frac{1}{S} \sum_{s \in \mathcal{S}} \theta_s
+  \qquad \text{s.t.}\;\; \eqref{eq:s1},\, \eqref{eq:s2},\;\;
+  \theta_s \geq 0 \;\;\forall\, s
+\end{equation}
+
+\paragraph{Subproblem (scenario $s$).}
+For fixed first-stage solution $(\bar{y}, \bar{n})$:
+\begin{equation}\label{eq:sub}
+  Q^s(\bar{n}) \;=\; \min_{x^s, u^s}
+  \left\{
+    \sum_{i,j} c_{ij}^s \, x_{ij}^s + P \sum_i u_i^s
+    \;\;\bigg|\;\;
+    \eqref{eq:s3},\, \eqref{eq:s4} \text{ with } n_j = \bar{n}_j
+  \right\}
+\end{equation}
+
+\paragraph{Optimality cuts.}
+Let $\alpha_i^s$ and $\beta_j^s$ denote duals of \eqref{eq:s3} and \eqref{eq:s4}.
+If $Q^s > \theta_s$, add:
+\begin{equation}\label{eq:cut}
+  \theta_s \;\geq\; \sum_{i \in \mathcal{I}} \alpha_i^s
+  \;+\; q \sum_{j \in \mathcal{J}} \beta_j^s \, n_j
+  \tag{OC}
+\end{equation}
+
+\noindent
+The algorithm iterates until the gap $(\text{UB} - \text{LB}) / |\text{UB}|$ falls below tolerance $\epsilon = 10^{-3}$ or a time limit is reached.
+
+\paragraph{Candidate site reduction.}
+For the full 1,072-robot instance, the candidate set is reduced using $k$-medoids to select 80--150 representative robot locations as candidate station sites, reducing the number of binary variables while maintaining coverage.
+
+
+\subsection{Mean-CVaR Extension}
+\label{sec:cvar}
+
+To control tail risk, the objective is replaced by a convex combination of the expectation and CVaR at confidence level $\beta$:
+
+\paragraph{Additional variables.}
+$\eta \in \mathbb{R}$ (VaR auxiliary), $z_s \geq 0$ (CVaR linearisation), $\forall\, s \in \mathcal{S}$.
+
+\paragraph{Objective.}
+\begin{equation}\label{eq:cvar-obj}
+  \min \;\;
+  \sum_{j} \bigl(c_b \, y_j + c_m \, n_j\bigr)
+  \;+\;
+  \underbrace{
+    \frac{1-\alpha}{S} \sum_{s} \theta_s
+  }_{\text{expected cost}}
+  \;+\;
+  \underbrace{
+    \alpha \left(
+      \eta + \frac{1}{S(1-\beta)} \sum_{s} z_s
+    \right)
+  }_{\text{CVaR}}
+\end{equation}
+
+\paragraph{Additional constraint.}
+\begin{alignat}{3}
+  & z_s \geq \theta_s - \eta
+    && \qquad \forall\, s \in \mathcal{S}
+    \label{eq:cvar-c} \tag{CV1}
+\end{alignat}
+
+\noindent
+At $\alpha = 0$ this reduces to the risk-neutral model; at $\alpha = 1$ it minimises pure CVaR$_\beta$.
+The formulation follows \citet{rockafellar2000}.
+
+
+\subsection{Stochastic ALNS (Alternative Method)}
+\label{sec:salns}
+
+As an alternative to exact Benders decomposition, we develop a Stochastic ALNS (SALNS) that extends the Q1c ALNS framework to handle uncertainty.
+The key idea is to replace the deterministic cost evaluation with a stochastic one:
+
+\begin{enumerate}[nosep]
+  \item \textbf{First-stage search}: The same ALNS destroy/repair operators from Q1c (D1--D5, R1--R3, L1--L3) modify station locations and charger counts.
+  \item \textbf{Second-stage evaluation}: For each candidate solution, a greedy capacity-constrained assignment is performed \emph{independently} for each scenario $s \in \mathcal{S}$, computing the scenario-specific operating cost. The objective is the first-stage cost plus the \emph{mean} second-stage cost across evaluated scenarios.
+  \item \textbf{Acceptance}: The LAHC acceptance criterion from Q1c is applied using the stochastic objective.
+\end{enumerate}
+
+\noindent
+This approach requires no LP solver and is entirely self-contained, making it suitable for large-scale instances where Benders becomes computationally expensive.
+To reduce the cost of evaluating all 100 scenarios at every iteration, we use a scenario subsample of 30 randomly selected scenarios per ALNS iteration; the full 100-scenario evaluation is reserved for updating the best-known solution.
+
+
+\subsection{Decision-Value Metrics}
+\label{sec:vss-evpi}
+
+\begin{tabular}{@{}lp{10cm}@{}}
+\textbf{WS} (Wait-and-See) & Solve a separate deterministic problem for each scenario; average the optimal costs. \\[4pt]
+\textbf{RP} (Recourse Problem) & Optimal expected cost from the stochastic programme~\eqref{eq:q2-obj}. \\[4pt]
+\textbf{EEV} & Solve deterministically with expected ranges; evaluate this solution under all scenarios.
+\end{tabular}
+
+\medskip
+\begin{align}
+  \text{VSS} &= \text{EEV} - \text{RP} \geq 0 \label{eq:vss} \\
+  \text{EVPI} &= \text{RP} - \text{WS} \geq 0 \label{eq:evpi}
+\end{align}
+
+\noindent
+VSS quantifies the cost saved by using the stochastic model; EVPI measures the maximum value of perfect range information.
+
+
+\subsection{Results}
+
+\begin{table}[H]
+\centering
+\caption{Q2 Benders decomposition results.}
+\label{tab:q2-benders}
+\begin{tabular}{lrrrr}
+\toprule
+Instance & Objective (\pounds) & Stations & Gap (\%) & Time (s) \\
+\midrule
+20 robots  & 25,703.18 & 2 & 13.47 & 610.0 \\
+50 robots  & 61,137.22 & 4 & 38.26 & 670.0 \\
+100 robots & 110,721.72 & 7 & 45.81 & 636.9 \\
+1072 robots (80 candidates) & 1,013,707.80 & 67 & 8.38 & 2066.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+As an alternative, the Stochastic ALNS (Section~\ref{sec:salns}) was run on the same instances.
+Table~\ref{tab:q2-comparison} compares both methods.
+
+\begin{table}[H]
+\centering
+\caption{Benders decomposition vs.\ Stochastic ALNS comparison.}
+\label{tab:q2-comparison}
+\begin{tabular}{lrrrrrr}
+\toprule
+ & \multicolumn{2}{c}{Objective (\pounds)} & Benders & SALNS & \multicolumn{2}{c}{Time (s)} \\
+\cmidrule(lr){2-3} \cmidrule(lr){6-7}
+Instance & Benders & SALNS & Gap (\%) & vs.\ EEV (\%) & Benders & SALNS \\
+\midrule
+20 robots   & 25,703 & 24,175 & 13.47 & 0.00  & 610  & 8   \\
+50 robots   & 61,137 & 55,202 & 38.26 & 1.84  & 670  & 25  \\
+100 robots  & 110,722 & 100,717 & 45.81 & 5.88 & 637  & 49  \\
+1072 robots & 1,013,708 & 899,082 & 8.38 & 11.90 & 2,067 & 563 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+On the full instance, Benders used 80 $k$-medoids candidate sites; the SALNS improvement percentages are measured against the initial greedy construction evaluated under all scenarios (EEV).
+
+\begin{table}[H]
+\centering
+\caption{Decision-value metrics (full 1,072-robot instance).}
+\label{tab:q2-vss}
+\begin{tabular}{lrl}
+\toprule
+Metric & Value (\pounds) & Interpretation \\
+\midrule
+EEV & 1,020,527 & Det.\ Q1 solution evaluated under all scenarios \\
+RP (SALNS)  & 899,082 & Stochastic optimum (SALNS, 5,000 iters) \\
+\midrule
+VSS $=$ EEV $-$ RP & 121,445\; (11.9\%) & Value of stochastic model \\
+\midrule
+EEV CVaR$_{0.95}$ & 433,728 & Tail risk under deterministic solution \\
+RP CVaR$_{0.95}$  & 312,597 & Tail risk under stochastic solution \\
+$\Delta$CVaR      & 121,131\; (27.9\%) & Tail-risk reduction \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{q2_salns_convergence.png}
+\caption{SALNS convergence for the full 1,072-robot instance (5,000 iterations, 30-scenario subsample per iteration).}
+\label{fig:q2-convergence}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{q2_salns_scenario_comparison.png}
+\caption{Per-scenario cost comparison: deterministic (EEV) vs.\ stochastic (SALNS) solutions across all 100 scenarios.}
+\label{fig:q2-scenario}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{q2_salns_vss.png}
+\caption{Value of the Stochastic Solution (VSS): the stochastic model saves \pounds121,445 (11.9\%) in expected cost.}
+\label{fig:q2-vss}
+\end{figure}
+
+
+\subsection{Discussion}
+
+\paragraph{Method selection and motivation.}
+We pursue two complementary approaches for the stochastic extension.
+Benders decomposition (Section~\ref{sec:benders}) provides a structured exact method with provable lower bounds via the L-shaped method, exploiting the natural first-stage/second-stage partition.
+The Stochastic ALNS (Section~\ref{sec:salns}) extends the Q1c metaheuristic framework to handle uncertainty: the ALNS destroy/repair operators from Q1c modify first-stage decisions (station locations and charger counts), while a fast greedy assignment is performed independently for each scenario to evaluate the expected second-stage cost.
+This dual-track strategy allows us to benchmark the heuristic against exact bounds on small instances, while relying on the scalable SALNS for the full 1,072-robot problem.
+
+To make the full instance tractable for Benders, we reduce the candidate site set using $k$-medoids clustering on robot locations, selecting 80--150 representative sites.
+This transforms the continuous location problem into a combinatorial one, consistent with the greedy construction in Q1b.
+
+\paragraph{Benders vs.\ SALNS performance.}
+Table~\ref{tab:q2-comparison} reveals that the SALNS consistently finds better feasible solutions than Benders across all instance sizes, while requiring substantially less computation time.
+On the small instances (20--100 robots), Benders leaves optimality gaps of 13--46\% within the 600\,s time limit, as the L-shaped method requires many iterations to tighten the lower bound.
+In contrast, the SALNS converges quickly: for 100 robots it achieves a 5.88\% improvement over the initial construction in under 50\,s.
+
+For the full 1,072-robot instance, Benders with 80 candidate sites yields an upper bound of \pounds1,013,708 (gap 8.38\%, 2,067\,s), whereas the SALNS reaches \pounds899,082 in 563\,s.
+Note that SALNS operates on the full Q1b candidate set (123 sites) and thus has greater spatial flexibility than the 80-site Benders configuration, which partly explains the better objective.
+
+\paragraph{Value of the stochastic model.}
+The VSS of \pounds121,445 (Table~\ref{tab:q2-vss}) represents 11.9\% of the deterministic solution cost, confirming that ignoring range uncertainty leads to significantly suboptimal infrastructure decisions.
+Figure~\ref{fig:q2-scenario} illustrates this: the SALNS solution dominates the deterministic (EEV) solution in virtually every scenario, with the largest savings occurring in high-cost realisations where robots have shorter ranges.
+
+The deterministic Q1c solution places 75 stations with 541 chargers (total cost \pounds1,098,803 under fixed ranges), while the stochastic SALNS solution uses 67 stations with 536 chargers (expected cost \pounds899,082 across 100 scenarios).
+The stochastic model explicitly accounts for the variability in which robots need charging across scenarios, leading to more efficient capacity allocation.
+
+\paragraph{Risk analysis.}
+The CVaR$_{0.95}$ --- the expected cost in the worst 5\% of scenarios --- decreases from \pounds433,728 under the deterministic solution to \pounds312,597 under the SALNS solution, a reduction of \pounds121,131 (27.9\%).
+This substantial tail-risk improvement indicates that the stochastic model not only reduces expected cost but also provides considerably better protection against adverse range realisations.
+
+\paragraph{Computational considerations.}
+Benders decomposition requires the FICO Xpress MIP solver and its per-iteration cost scales with the number of candidate sites and scenarios: each iteration solves 100 scenario LPs plus a master MIP, taking over 100\,s per iteration for the full instance.
+The SALNS, being entirely solver-free, evaluates scenarios via fast greedy capacity-constrained assignment and uses a 30-scenario subsample per ALNS iteration for computational efficiency, with full 100-scenario evaluation reserved for updating the best-known solution.
+This acceleration strategy (Figure~\ref{fig:q2-convergence}) enables the SALNS to explore the solution space effectively within a practical time budget.
+Among the ALNS operators, the Cluster-Repair (R3) and Worst-Remove (D2) operators contribute the majority of improving moves, confirming that scenario-aware neighbourhood operators are essential for the stochastic variant.
+
+
+% ===================================================================
+% Conclusion
+% ===================================================================
+\newpage
+\section{Conclusion}
+\label{sec:conclusion}
+
+This report presents a comprehensive approach to the Antarctic charging station placement problem under both deterministic and stochastic settings.
+
+For the deterministic case, the MINLP formulation (Q1a) provides exact solutions for small instances (20--100 robots) but is intractable at full scale due to the nonlinear distance constraints.
+The two-phase greedy heuristic (Q1b) based on $k$-medoids clustering generates feasible solutions efficiently for all instance sizes, and the ALNS+LAHC framework (Q1c) achieves an 18.0\% cost reduction on the full 1,072-robot instance, reducing the total cost from \pounds1,339,817 to \pounds1,098,803 with 75 stations and 541 chargers.
+
+For the stochastic extension (Q2), we formulated a two-stage stochastic programme with 100 range scenarios and pursued two solution methods.
+Benders decomposition provides structured solutions with provable lower bounds but leaves optimality gaps of 8--46\% within time limits.
+The Stochastic ALNS, which naturally extends the Q1c framework by replacing the deterministic objective with a scenario-averaged evaluation, achieves an expected cost of \pounds899,082 for the full instance --- an 11.9\% improvement over the deterministic solution evaluated under uncertainty (\pounds1,020,527).
+The VSS of \pounds121,445 confirms that explicitly modelling range uncertainty yields substantial savings, while the CVaR$_{0.95}$ reduction from \pounds433,728 to \pounds312,597 demonstrates improved robustness against adverse scenarios.
+These results support the use of metaheuristic approaches for large-scale stochastic facility location problems, particularly when commercial MIP solvers face scalability limitations.
+
+
+% ===================================================================
+% References
+% ===================================================================
+\newpage
+\bibliographystyle{plainnat}
+
+\begin{thebibliography}{10}
+
+\bibitem[Ropke and Pisinger(2006)]{ropke2006}
+S.~Ropke and D.~Pisinger.
+\newblock An adaptive large neighborhood search heuristic for the pickup and delivery problem with time windows.
+\newblock \emph{Transportation Science}, 40(4):455--472, 2006.
+
+\bibitem[Burke and Bykov(2017)]{burke2017}
+E.~K. Burke and Y.~Bykov.
+\newblock The late acceptance hill-climbing heuristic.
+\newblock \emph{European Journal of Operational Research}, 258(1):70--78, 2017.
+
+\bibitem[Rockafellar and Uryasev(2000)]{rockafellar2000}
+R.~T. Rockafellar and S.~Uryasev.
+\newblock Optimization of conditional value-at-risk.
+\newblock \emph{The Journal of Risk}, 2(3):21--41, 2000.
+
+\bibitem[Rahmaniani et~al.(2017)]{rahmaniani2017}
+R.~Rahmaniani, T.~G. Crainic, M.~Gendreau, and W.~Rei.
+\newblock The {B}enders decomposition algorithm: a literature review.
+\newblock \emph{European Journal of Operational Research}, 259(3):801--817, 2017.
+
+\bibitem[Snyder(2006)]{snyder2006}
+L.~V. Snyder.
+\newblock Facility location under uncertainty: a review.
+\newblock \emph{IIE Transactions}, 38(7):537--554, 2006.
+
+\bibitem[Verweij et~al.(2003)]{verweij2003}
+B.~Verweij, S.~Ahmed, A.~J. Kleywegt, G.~Nemhauser, and A.~Shapiro.
+\newblock The sample average approximation method applied to stochastic routing problems: a computational study.
+\newblock \emph{Computational Optimization and Applications}, 24(2):289--333, 2003.
+
+\bibitem[Turke\v{s} et~al.(2021)]{turkes2021}
+R.~Turke\v{s}, K.~S\"orensen, and D.~P. Cuervo.
+\newblock A matheuristic for the stochastic facility location problem.
+\newblock \emph{Journal of Heuristics}, 27:649--694, 2021.
+
+\end{thebibliography}
+
+\end{document}

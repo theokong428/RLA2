@@ -1,0 +1,121 @@
+Q2: Stochastic ALNS (SALNS)
+======================================================================
+Loaded: 1072 robots, 100 scenarios
+
+
+======================================================================
+PART 1: Small instances — SALNS
+======================================================================
+
+--- 20 robots ---
+  Initial expected cost: £24,175.03 (2 stations)
+  SALNS iter    600/3000: best=£24,175  curr=£24,175  stations=2  time=1.6s
+  SALNS iter   1200/3000: best=£24,175  curr=£24,175  stations=2  time=3.1s
+  SALNS iter   1500/3000: best=£24,175  curr=£24,175  stations=2  time=3.9s
+  SALNS iter   2100/3000: best=£24,175  curr=£24,175  stations=2  time=5.7s
+  SALNS iter   2400/3000: best=£24,175  curr=£24,175  stations=2  time=6.6s
+  SALNS iter   2700/3000: best=£24,175  curr=£24,175  stations=2  time=7.5s
+  SALNS iter   3000/3000: best=£24,175  curr=£24,175  stations=2  time=8.4s
+  SALNS:
+    Expected cost:  £24,175.03
+    Stations:       2
+    Chargers:       10
+    CVaR_0.95:      £11,770.12
+    VaR_0.95:       £11,316.51
+    Improvement:    0.00%
+    Time:           8.4s
+
+--- 50 robots ---
+  Initial expected cost: £56,234.34 (4 stations)
+  SALNS iter    300/3000: best=£55,692  curr=£55,980  stations=4  time=2.6s
+  SALNS iter    600/3000: best=£55,692  curr=£55,947  stations=4  time=5.0s
+  SALNS iter    900/3000: best=£55,202  curr=£55,723  stations=4  time=7.3s
+  SALNS iter   1200/3000: best=£55,202  curr=£55,743  stations=4  time=9.6s
+  SALNS iter   1500/3000: best=£55,202  curr=£55,924  stations=4  time=12.1s
+  SALNS iter   2100/3000: best=£55,202  curr=£55,756  stations=4  time=17.0s
+  SALNS iter   2400/3000: best=£55,202  curr=£55,890  stations=4  time=19.5s
+  SALNS iter   2700/3000: best=£55,202  curr=£55,890  stations=4  time=22.0s
+  SALNS iter   3000/3000: best=£55,202  curr=£55,890  stations=4  time=24.6s
+  SALNS:
+    Expected cost:  £55,202.26
+    Stations:       4
+    Chargers:       25
+    CVaR_0.95:      £26,986.77
+    VaR_0.95:       £26,266.40
+    Improvement:    1.84%
+    Time:           24.6s
+
+--- 100 robots ---
+  Initial expected cost: £107,006.43 (7 stations)
+  SALNS iter    600/3000: best=£101,944  curr=£104,374  stations=7  time=9.1s
+  SALNS iter    900/3000: best=£101,944  curr=£104,306  stations=7  time=13.6s
+  SALNS iter   1200/3000: best=£101,270  curr=£103,948  stations=7  time=18.3s
+  SALNS iter   1500/3000: best=£100,717  curr=£102,462  stations=7  time=23.6s
+  SALNS iter   1800/3000: best=£100,717  curr=£103,765  stations=7  time=29.3s
+  SALNS iter   2100/3000: best=£100,717  curr=£102,955  stations=7  time=34.0s
+  SALNS iter   2400/3000: best=£100,717  curr=£103,359  stations=7  time=38.8s
+  SALNS iter   2700/3000: best=£100,717  curr=£102,972  stations=7  time=43.8s
+  SALNS iter   3000/3000: best=£100,717  curr=£102,901  stations=7  time=49.1s
+  SALNS:
+    Expected cost:  £100,716.72
+    Stations:       7
+    Chargers:       50
+    CVaR_0.95:      £46,258.20
+    VaR_0.95:       £45,350.22
+    Improvement:    5.88%
+    Time:           49.1s
+
+======================================================================
+PART 2: Full instance SALNS (1072 robots x 100 scenarios)
+======================================================================
+  Initial expected cost: £1,020,526.74 (67 stations)
+
+  Running SALNS (30-scenario subsample, 5000 iters)...
+  SALNS iter    500/5000: best=£944,206  curr=£961,454  stations=69  time=78.2s
+  SALNS iter   1000/5000: best=£913,684  curr=£924,727  stations=70  time=131.0s
+  SALNS iter   1500/5000: best=£908,616  curr=£930,683  stations=67  time=188.2s
+  SALNS iter   2000/5000: best=£898,531  curr=£909,729  stations=67  time=240.6s
+  SALNS iter   3000/5000: best=£898,531  curr=£903,043  stations=67  time=344.6s
+  SALNS iter   3500/5000: best=£898,531  curr=£903,278  stations=67  time=398.0s
+  SALNS iter   4000/5000: best=£898,531  curr=£902,660  stations=67  time=453.8s
+  SALNS iter   4500/5000: best=£898,531  curr=£900,829  stations=67  time=512.1s
+  SALNS iter   5000/5000: best=£898,531  curr=£901,990  stations=67  time=562.7s
+  Re-evaluating best on all scenarios...
+
+  SALNS (full):
+    Expected cost:  £899,081.82
+    Stations:       67
+    Chargers:       536
+    Transport:    522 robots
+    CVaR_0.95:      £312,597.18
+    VaR_0.95:       £307,619.38
+    Improvement:    11.90%
+    Time:           562.7s
+
+======================================================================
+PART 3: VSS — SALNS vs deterministic Q1
+======================================================================
+  EEV (det. Q1, scenarios): £1,020,526.74
+  RP  (SALNS):              £899,081.82
+  VSS = EEV - RP:          £121,444.92
+  VSS / EEV:               11.90%
+
+  Det. CVaR_0.95:          £433,728.44
+  SALNS CVaR_0.95:         £312,597.18
+  CVaR delta:              £121,131.26
+
+======================================================================
+PART 4: SALNS operator stats
+======================================================================
+  D1: Random-Remove                   uses=  502  improves=   6  rate=1.2%
+  D2: Worst-Remove (stoch)            uses= 1096  improves=  18  rate=1.6%
+  D3: Zone-Remove                     uses=  374  improves=   8  rate=2.1%
+  R1: Greedy-Insert                   uses=  110  improves=   0  rate=0.0%
+  R2: Regret-Insert                   uses=   99  improves=   0  rate=0.0%
+  R3: Cluster-Repair                  uses= 1763  improves=  32  rate=1.8%
+  L1: Station-Relocate                uses= 1980  improves=   7  rate=0.4%
+  L2: Charger-Adjust                  uses=  247  improves=   0  rate=0.0%
+  L3: Robot-Swap                      uses=  801  improves=   0  rate=0.0%
+
+Saved: C:\Users\15867\OneDrive\Desktop\RLA2\results\q2_salns_results.json
+Log:   C:\Users\15867\OneDrive\Desktop\RLA2\results\q2_salns_output.txt

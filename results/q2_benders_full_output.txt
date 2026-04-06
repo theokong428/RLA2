@@ -1,0 +1,135 @@
+Q2: SAA + Benders Decomposition
+======================================================================
+Loaded: 1072 robots, 100 scenarios
+
+
+======================================================================
+PART 1: Small instances — exact Benders (risk-neutral)
+======================================================================
+
+--- 20 robots: 20 candidate sites ---
+  Benders   0: LB=£15,000  UB=£27,260  gap=0.4497  cuts=100  t=0.3s
+  Benders   1: LB=£15,098  UB=£26,021  gap=0.4198  cuts=100  t=0.7s
+  Benders   2: LB=£15,705  UB=£26,021  gap=0.3964  cuts=100  t=1.4s
+  Benders   3: LB=£16,026  UB=£26,021  gap=0.3841  cuts=100  t=2.4s
+  Benders   4: LB=£16,200  UB=£26,021  gap=0.3774  cuts=100  t=3.6s
+  Benders   5: LB=£16,350  UB=£26,021  gap=0.3717  cuts=100  t=5.7s
+  Benders   6: LB=£16,571  UB=£26,021  gap=0.3632  cuts=100  t=8.3s
+  Benders   7: LB=£16,671  UB=£26,021  gap=0.3593  cuts=100  t=10.7s
+  Benders   8: LB=£17,383  UB=£25,981  gap=0.3309  cuts=100  t=14.7s
+  Benders   9: LB=£17,839  UB=£25,981  gap=0.3134  cuts=100  t=19.5s
+  Benders  10: LB=£18,531  UB=£25,981  gap=0.2868  cuts=100  t=23.9s
+  Benders  11: LB=£19,333  UB=£25,981  gap=0.2559  cuts=100  t=31.2s
+  Benders  12: LB=£19,743  UB=£25,981  gap=0.2401  cuts=100  t=39.0s
+  Benders  13: LB=£19,923  UB=£25,981  gap=0.2332  cuts=100  t=46.8s
+  Benders  14: LB=£20,078  UB=£25,981  gap=0.2272  cuts=100  t=54.8s
+  Benders  15: LB=£20,282  UB=£25,981  gap=0.2194  cuts=100  t=65.3s
+  Benders  16: LB=£20,432  UB=£25,981  gap=0.2136  cuts=100  t=76.7s
+  Benders  17: LB=£20,581  UB=£25,981  gap=0.2079  cuts=100  t=84.5s
+  Benders  18: LB=£20,682  UB=£25,981  gap=0.2040  cuts=100  t=95.3s
+  Benders  19: LB=£20,696  UB=£25,981  gap=0.2034  cuts=100  t=102.8s
+  Benders  20: LB=£20,842  UB=£25,981  gap=0.1978  cuts=100  t=110.9s
+  Benders  21: LB=£20,861  UB=£25,981  gap=0.1971  cuts=100  t=123.2s
+  Benders  22: LB=£20,893  UB=£25,981  gap=0.1958  cuts=100  t=135.3s
+  Benders  23: LB=£20,901  UB=£25,981  gap=0.1955  cuts=100  t=147.3s
+  Benders  24: LB=£20,951  UB=£25,981  gap=0.1936  cuts=100  t=160.8s
+  Benders  25: LB=£21,000  UB=£25,981  gap=0.1917  cuts=100  t=175.3s
+  Benders  26: LB=£21,067  UB=£25,981  gap=0.1892  cuts=100  t=190.3s
+  Benders  27: LB=£21,133  UB=£25,981  gap=0.1866  cuts=100  t=206.1s
+  Benders  28: LB=£21,173  UB=£25,981  gap=0.1851  cuts=100  t=223.3s
+  Benders  29: LB=£21,223  UB=£25,981  gap=0.1831  cuts=100  t=237.8s
+  Benders  30: LB=£21,258  UB=£25,981  gap=0.1818  cuts=100  t=253.2s
+  Benders  31: LB=£21,393  UB=£25,703  gap=0.1677  cuts=100  t=267.9s
+  Benders  32: LB=£21,436  UB=£25,703  gap=0.1660  cuts=100  t=285.9s
+  Benders  33: LB=£21,558  UB=£25,703  gap=0.1613  cuts=100  t=305.5s
+  Benders  34: LB=£21,604  UB=£25,703  gap=0.1595  cuts=100  t=325.5s
+  Benders  35: LB=£21,650  UB=£25,703  gap=0.1577  cuts=100  t=345.0s
+  Benders  36: LB=£21,698  UB=£25,703  gap=0.1558  cuts=100  t=367.2s
+  Benders  37: LB=£21,780  UB=£25,703  gap=0.1526  cuts=100  t=388.0s
+  Benders  38: LB=£21,897  UB=£25,703  gap=0.1481  cuts=100  t=414.9s
+  Benders  39: LB=£21,934  UB=£25,703  gap=0.1467  cuts=100  t=438.5s
+  Benders  40: LB=£21,968  UB=£25,703  gap=0.1453  cuts=100  t=465.7s
+  Benders  41: LB=£21,974  UB=£25,703  gap=0.1451  cuts=100  t=492.8s
+  Benders  42: LB=£22,074  UB=£25,703  gap=0.1412  cuts=100  t=519.5s
+  Benders  43: LB=£22,210  UB=£25,703  gap=0.1359  cuts=100  t=548.8s
+  Benders  44: LB=£22,238  UB=£25,703  gap=0.1348  cuts=100  t=578.2s
+  Benders  45: LB=£22,240  UB=£25,703  gap=0.1347  cuts=100  t=610.0s
+  Time limit reached (610s)
+  Result: objective=£25,703.18, stations=2, chargers=10, gap=0.1347, time=610.0s
+  CVaR_0.95=£14,431.23, VaR_0.95=£14,041.38
+
+--- 50 robots: 50 candidate sites ---
+  Benders   0: LB=£32,500  UB=£61,778  gap=0.4739  cuts=100  t=1.7s
+  Benders   1: LB=£32,500  UB=£61,778  gap=0.4739  cuts=100  t=20.4s
+  Benders   2: LB=£32,819  UB=£61,739  gap=0.4684  cuts=100  t=44.3s
+  Benders   3: LB=£33,022  UB=£61,739  gap=0.4651  cuts=100  t=69.0s
+  Benders   4: LB=£33,443  UB=£61,654  gap=0.4576  cuts=100  t=97.7s
+  Benders   5: LB=£33,497  UB=£61,654  gap=0.4567  cuts=100  t=130.6s
+  Benders   6: LB=£34,342  UB=£61,654  gap=0.4430  cuts=100  t=163.9s
+  Benders   7: LB=£34,417  UB=£61,654  gap=0.4418  cuts=100  t=192.8s
+  Benders   8: LB=£34,523  UB=£61,654  gap=0.4401  cuts=100  t=215.2s
+  Benders   9: LB=£35,002  UB=£61,654  gap=0.4323  cuts=100  t=241.4s
+  Benders  10: LB=£35,730  UB=£61,654  gap=0.4205  cuts=100  t=275.0s
+  Benders  11: LB=£36,025  UB=£61,137  gap=0.4108  cuts=100  t=310.1s
+  Benders  12: LB=£36,074  UB=£61,137  gap=0.4099  cuts=100  t=339.5s
+  Benders  13: LB=£36,899  UB=£61,137  gap=0.3965  cuts=100  t=409.2s
+  Benders  14: LB=£36,944  UB=£61,137  gap=0.3957  cuts=100  t=448.4s
+  Benders  15: LB=£37,012  UB=£61,137  gap=0.3946  cuts=100  t=494.4s
+  Benders  16: LB=£37,648  UB=£61,137  gap=0.3842  cuts=100  t=597.6s
+  Benders  17: LB=£37,746  UB=£61,137  gap=0.3826  cuts=100  t=670.0s
+  Time limit reached (670s)
+  Result: objective=£61,137.22, stations=4, chargers=27, gap=0.3826, time=670.0s
+  CVaR_0.95=£34,122.52, VaR_0.95=£33,241.81
+
+--- 100 robots: 100 candidate sites ---
+  Benders   0: LB=£60,000  UB=£110,722  gap=0.4581  cuts=100  t=5.9s
+  Benders   1: LB=£60,000  UB=£110,722  gap=0.4581  cuts=100  t=636.9s
+  Time limit reached (637s)
+  Result: objective=£110,721.72, stations=7, chargers=50, gap=0.4581, time=636.9s
+  CVaR_0.95=£60,804.49, VaR_0.95=£59,718.92
+
+======================================================================
+PART 2: Full instance Benders (k-medoids candidate reduction)
+======================================================================
+
+--- Candidate sites: 80 ---
+  Generated 80 candidate sites
+  Benders   0: LB=£603,000  UB=£1,042,364  gap=0.4215  cuts=100  t=69.8s
+  Benders   1: LB=£880,575  UB=£1,013,708  gap=0.1313  cuts=100  t=135.5s
+  Benders   2: LB=£888,803  UB=£1,013,708  gap=0.1232  cuts=100  t=203.8s
+  Benders   3: LB=£899,319  UB=£1,013,708  gap=0.1128  cuts=100  t=270.8s
+  Benders   4: LB=£907,462  UB=£1,013,708  gap=0.1048  cuts=100  t=338.6s
+  Benders   5: LB=£914,509  UB=£1,013,708  gap=0.0979  cuts=100  t=405.4s
+  Benders   6: LB=£920,205  UB=£1,013,708  gap=0.0922  cuts=100  t=474.9s
+  Benders   7: LB=£922,017  UB=£1,013,708  gap=0.0905  cuts=100  t=545.1s
+  Benders   8: LB=£923,842  UB=£1,013,708  gap=0.0887  cuts=100  t=632.0s
+  Benders   9: LB=£924,605  UB=£1,013,708  gap=0.0879  cuts=100  t=709.9s
+  Benders  10: LB=£925,914  UB=£1,013,708  gap=0.0866  cuts=100  t=808.4s
+  Benders  11: LB=£926,982  UB=£1,013,708  gap=0.0856  cuts=100  t=1030.2s
+  Benders  12: LB=£927,260  UB=£1,013,708  gap=0.0853  cuts=100  t=1239.9s
+  Benders  13: LB=£928,077  UB=£1,013,708  gap=0.0845  cuts=100  t=1647.6s
+  Benders  14: LB=£928,771  UB=£1,013,708  gap=0.0838  cuts=100  t=2066.9s
+  Time limit reached (2067s)
+  Result: objective=£1,013,707.80, stations=67, chargers=536
+  gap=0.0838, time=2066.9s
+  CVaR_0.95=£441,650.24
+
+--- Candidate sites: 120 ---
+  Generated 120 candidate sites
+  Benders   0: LB=£603,000  UB=£1,052,594  gap=0.4271  cuts=100  t=86.2s
+  Benders   1: LB=£603,000  UB=£1,000,803  gap=0.3975  cuts=100  t=172.8s
+  Benders   2: LB=£603,010  UB=£956,410  gap=0.3695  cuts=100  t=263.1s
+  Benders   3: LB=£603,400  UB=£956,410  gap=0.3691  cuts=100  t=359.1s
+  Benders   4: LB=£624,955  UB=£956,410  gap=0.3466  cuts=100  t=457.3s
+  Benders   5: LB=£652,805  UB=£956,410  gap=0.3174  cuts=100  t=559.6s
+  Benders   6: LB=£663,849  UB=£956,410  gap=0.3059  cuts=100  t=920.4s
+  Benders   7: LB=£669,890  UB=£956,410  gap=0.2996  cuts=100  t=2777.6s
+  Time limit reached (2778s)
+  Result: objective=£956,409.90, stations=67, chargers=536
+  gap=0.2996, time=2777.6s
+  CVaR_0.95=£380,193.12
+
+--- Candidate sites: 150 ---
+  Generated 150 candidate sites
+  Benders   0: LB=£603,000  UB=£1,057,135  gap=0.4296  cuts=100  t=70.5s
+  Benders   1: LB=£603,000  UB=£1,019,514  gap=0.4085  cuts=100  t=140.0s

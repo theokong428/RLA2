@@ -1,0 +1,91 @@
+{
+  "method": "Stochastic ALNS (SALNS)",
+  "small_instances": {
+    "20 robots": {
+      "expected_cost": 24175.03454085625,
+      "init_cost": 24175.03454085625,
+      "improvement": 0.0,
+      "n_stations": 2,
+      "n_chargers": 10,
+      "cvar_095": 11770.118254870209,
+      "time": 8.36344599723816
+    },
+    "50 robots": {
+      "expected_cost": 55202.26359446215,
+      "init_cost": 56234.34420142298,
+      "improvement": 1.8353207841529582,
+      "n_stations": 4,
+      "n_chargers": 25,
+      "cvar_095": 26986.770572344732,
+      "time": 24.630218029022217
+    },
+    "100 robots": {
+      "expected_cost": 100716.72479647212,
+      "init_cost": 107006.42905846637,
+      "improvement": 5.877875112118423,
+      "n_stations": 7,
+      "n_chargers": 50,
+      "cvar_095": 46258.20183835865,
+      "time": 49.12572455406189
+    }
+  },
+  "full_instance": {
+    "expected_cost": 899081.8188210803,
+    "init_cost": 1020526.7354117957,
+    "improvement": 11.900219012068392,
+    "n_stations": 67,
+    "n_chargers": 536,
+    "transport_count": 522,
+    "cvar_095": 312597.1819564797,
+    "var_095": 307619.3763800557,
+    "time": 562.674069404602,
+    "iterations": 5000,
+    "n_scenario_eval": 30,
+    "operator_stats": {
+      "D1: Random-Remove": {
+        "uses": 502,
+        "improves": 6
+      },
+      "D2: Worst-Remove (stoch)": {
+        "uses": 1096,
+        "improves": 18
+      },
+      "D3: Zone-Remove": {
+        "uses": 374,
+        "improves": 8
+      },
+      "R1: Greedy-Insert": {
+        "uses": 110,
+        "improves": 0
+      },
+      "R2: Regret-Insert": {
+        "uses": 99,
+        "improves": 0
+      },
+      "R3: Cluster-Repair": {
+        "uses": 1763,
+        "improves": 32
+      },
+      "L1: Station-Relocate": {
+        "uses": 1980,
+        "improves": 7
+      },
+      "L2: Charger-Adjust": {
+        "uses": 247,
+        "improves": 0
+      },
+      "L3: Robot-Swap": {
+        "uses": 801,
+        "improves": 0
+      }
+    }
+  },
+  "vss_analysis": {
+    "eev": 1020526.7354117957,
+    "rp": 899081.8188210803,
+    "vss": 121444.91659071541,
+    "vss_pct": 11.900219012068392,
+    "eev_cvar_095": 433728.43701348006,
+    "rp_cvar_095": 312597.1819564797
+  }
+}

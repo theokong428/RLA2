@@ -1,0 +1,208 @@
+Q1c ALNS+LAHC — small instances + full (k=123, 20000 iters)
+============================================================
+Full data loaded: 1072 robots
+
+
+============================================================
+Q1c ALNS+LAHC: 20 robots
+  n=20, max_iter=30000
+============================================================
+  Initial (Q1b): £31,049.91  (2 stations)
+  ALNS iter   3000/30000: best=£31,050  curr=£31,050  time=0.2s
+  ALNS iter   6000/30000: best=£31,050  curr=£31,050  time=0.4s
+  ALNS iter   9000/30000: best=£31,050  curr=£31,050  time=0.6s
+  ALNS iter  12000/30000: best=£31,050  curr=£31,050  time=0.8s
+  ALNS iter  15000/30000: best=£31,050  curr=£31,050  time=1.0s
+  ALNS iter  18000/30000: best=£31,050  curr=£31,050  time=1.2s
+  ALNS iter  21000/30000: best=£31,050  curr=£31,050  time=1.4s
+  ALNS iter  24000/30000: best=£31,050  curr=£31,050  time=1.6s
+  ALNS iter  27000/30000: best=£31,050  curr=£31,050  time=1.7s
+  ALNS iter  30000/30000: best=£31,050  curr=£31,050  time=1.9s
+
+  ALNS+LAHC Result:
+    Time:        1.927s
+    Stations:    2
+    Chargers:    [8, 2]
+    Transport:   16 robots
+    Cost breakdown:
+      Build:       £10,000.00
+      Maintenance: £5,000.00
+      Charging:    £49.91
+      Transport:   £16,000.00
+      TOTAL:       £31,049.91
+    Improvement: 0.00%
+    Feasible:    True
+
+  Operator performance:
+    D: Random-Remove          uses=  3522  improves=0
+    D: Worst-Remove           uses=  3655  improves=0
+    D: Zone-Remove            uses=  3587  improves=0
+    D: Merge-Stations         uses=  3685  improves=0
+    D: Split-Station          uses=  3541  improves=0
+    R: Greedy-Insert          uses=  6105  improves=0
+    R: Regret-Insert          uses=  5987  improves=0
+    R: Cluster-Repair         uses=  5898  improves=0
+    L: Station-Relocate       uses=  2976  improves=0
+    L: Charger-Adjust         uses=  3054  improves=0
+    L: Robot-Swap             uses=  3074  improves=0
+    L: Robot-Reassign         uses=  2906  improves=0
+
+============================================================
+Q1c ALNS+LAHC: 50 robots
+  n=50, max_iter=30000
+============================================================
+  Initial (Q1b): £75,088.94  (4 stations)
+  ALNS iter   3000/30000: best=£71,698  curr=£74,660  time=1.0s
+  ALNS iter   6000/30000: best=£71,698  curr=£73,676  time=1.6s
+  ALNS iter  12000/30000: best=£71,698  curr=£73,660  time=2.7s
+  ALNS iter  15000/30000: best=£71,698  curr=£74,176  time=3.3s
+  ALNS iter  18000/30000: best=£71,698  curr=£74,625  time=3.7s
+  ALNS iter  21000/30000: best=£71,698  curr=£73,660  time=4.2s
+  ALNS iter  24000/30000: best=£71,698  curr=£73,676  time=4.7s
+  ALNS iter  27000/30000: best=£71,698  curr=£72,689  time=5.2s
+  ALNS iter  30000/30000: best=£71,698  curr=£73,660  time=5.6s
+
+  ALNS+LAHC Result:
+    Time:        5.644s
+    Stations:    4
+    Chargers:    [3, 8, 6, 8]
+    Transport:   39 robots
+    Cost breakdown:
+      Build:       £20,000.00
+      Maintenance: £12,500.00
+      Charging:    £197.56
+      Transport:   £39,000.00
+      TOTAL:       £71,697.56
+    Improvement: 4.52%
+    Feasible:    True
+
+  Operator performance:
+    D: Random-Remove          uses=  4380  improves=0
+    D: Worst-Remove           uses=  4282  improves=1
+    D: Zone-Remove            uses=  4063  improves=2
+    D: Merge-Stations         uses=  4731  improves=1
+    D: Split-Station          uses=   379  improves=0
+    R: Greedy-Insert          uses=  1035  improves=0
+    R: Regret-Insert          uses=  1033  improves=0
+    R: Cluster-Repair         uses= 15767  improves=4
+    L: Station-Relocate       uses=  4530  improves=0
+    L: Charger-Adjust         uses=  1074  improves=0
+    L: Robot-Swap             uses=  2738  improves=0
+    L: Robot-Reassign         uses=  3823  improves=0
+
+============================================================
+Q1c ALNS+LAHC: 100 robots
+  n=100, max_iter=30000
+============================================================
+  Initial (Q1b): £146,674.15  (7 stations)
+  ALNS iter   3000/30000: best=£136,913  curr=£144,772  time=1.0s
+  ALNS iter   6000/30000: best=£134,405  curr=£142,907  time=1.6s
+  ALNS iter   9000/30000: best=£134,405  curr=£140,257  time=2.2s
+  ALNS iter  12000/30000: best=£134,013  curr=£140,296  time=2.7s
+  ALNS iter  15000/30000: best=£133,472  curr=£142,197  time=3.3s
+  ALNS iter  18000/30000: best=£133,472  curr=£136,417  time=3.9s
+  ALNS iter  21000/30000: best=£133,472  curr=£139,333  time=4.5s
+  ALNS iter  24000/30000: best=£133,472  curr=£137,369  time=5.1s
+  ALNS iter  27000/30000: best=£133,472  curr=£137,387  time=5.7s
+  ALNS iter  30000/30000: best=£133,472  curr=£137,350  time=6.2s
+
+  ALNS+LAHC Result:
+    Time:        6.228s
+    Stations:    7
+    Chargers:    [3, 8, 8, 8, 8, 8, 7]
+    Transport:   73 robots
+    Cost breakdown:
+      Build:       £35,000.00
+      Maintenance: £25,000.00
+      Charging:    £472.00
+      Transport:   £73,000.00
+      TOTAL:       £133,472.00
+    Improvement: 9.00%
+    Feasible:    True
+
+  Operator performance:
+    D: Random-Remove          uses=  4611  improves=5
+    D: Worst-Remove           uses=  4503  improves=4
+    D: Zone-Remove            uses=  4636  improves=5
+    D: Merge-Stations         uses=  3747  improves=2
+    D: Split-Station          uses=   509  improves=0
+    R: Greedy-Insert          uses=   695  improves=0
+    R: Regret-Insert          uses=   691  improves=0
+    R: Cluster-Repair         uses= 16620  improves=16
+    L: Station-Relocate       uses=  5907  improves=0
+    L: Charger-Adjust         uses=   962  improves=0
+    L: Robot-Swap             uses=  2865  improves=0
+    L: Robot-Reassign         uses=  2260  improves=0
+
+============================================================
+Q1c ALNS+LAHC: 1072 robots (full)
+  n=1072, max_iter=20000, k=123
+============================================================
+  Initial (Q1b): £1,317,462.48  (123 stations)
+  ALNS iter   2000/20000: best=£1,131,699  curr=£1,190,323  time=47.9s
+  ALNS iter   4000/20000: best=£1,115,012  curr=£1,176,643  time=71.6s
+  ALNS iter   6000/20000: best=£1,114,494  curr=£1,156,197  time=87.2s
+  ALNS iter   8000/20000: best=£1,113,577  curr=£1,127,527  time=98.7s
+  ALNS iter  10000/20000: best=£1,100,612  curr=£1,104,074  time=106.7s
+  ALNS iter  12000/20000: best=£1,099,058  curr=£1,119,442  time=112.8s
+  ALNS iter  14000/20000: best=£1,099,058  curr=£1,116,129  time=119.1s
+  ALNS iter  16000/20000: best=£1,098,803  curr=£1,112,492  time=125.5s
+  ALNS iter  18000/20000: best=£1,098,803  curr=£1,110,066  time=133.0s
+  ALNS iter  20000/20000: best=£1,098,803  curr=£1,114,484  time=141.4s
+
+  ALNS+LAHC Result:
+    Time:        141.431s
+    Stations:    75
+    Chargers:    [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 6, 4, 8, 8, 8, 8, 6, 8, 6, 8, 8, 3, 8, 5, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 2, 4, 2, 8, 3, 5, 8, 3, 6, 5, 5, 8, 8, 8, 8, 8, 8, 8, 8, 7]
+    Transport:   442 robots
+    Cost breakdown:
+      Build:       £375,000.00
+      Maintenance: £270,500.00
+      Charging:    £11,302.69
+      Transport:   £442,000.00
+      TOTAL:       £1,098,802.69
+    Improvement: 16.60%
+    Feasible:    True
+
+  Operator performance:
+    D: Random-Remove          uses=  2230  improves=0
+    D: Worst-Remove           uses=  4878  improves=25
+    D: Zone-Remove            uses=  1415  improves=8
+    D: Merge-Stations         uses=  2394  improves=1
+    D: Split-Station          uses=  1020  improves=1
+    R: Greedy-Insert          uses=   843  improves=0
+    R: Regret-Insert          uses=   700  improves=0
+    R: Cluster-Repair         uses= 10394  improves=35
+    L: Station-Relocate       uses=  5481  improves=4
+    L: Charger-Adjust         uses=   547  improves=0
+    L: Robot-Swap             uses=  1394  improves=0
+    L: Robot-Reassign         uses=   641  improves=0
+  Figures: C:\Users\15867\OneDrive\Desktop\RLA2\results\q1c_alns_k_evolution_1072.png, C:\Users\15867\OneDrive\Desktop\RLA2\results\q1c_alns_best_cost_1072.png
+
+==========================================================================================
+Q1c Comparison: Q1a (MINLP) vs Q1b vs ALNS+LAHC
+  Q1a: results/q1a_output.txt (Haversine row in MINLP summary)
+  Q1b: results/q1b_output.txt (TOTAL per construction block)
+==========================================================================================
+Instance                                Q1a          Q1b         ALNS  ALNS Improv
+-------------------------------------------------------------------------------------
+20 robots                       £    31,653  £    31,050 £    31,050         0.0%
+50 robots                       £    85,431  £    75,089 £    71,698         4.5%
+100 robots                      £   174,825  £   147,134 £   133,472         9.3%
+1072 robots (full), k=123               N/A  £ 1,339,817 £ 1,098,803        18.0%
+
+============================================================
+Q1c ALNS Full Instance Summary
+============================================================
+  Initial cost:   £1,317,462.48
+  ALNS cost:      £1,098,802.69
+  Improvement:    16.60%
+  Stations:       75
+  Total chargers: 541
+  Transport:      442 robots
+  Runtime:        141.431s
+  Feasible:       True
+
+Results saved to C:\Users\15867\OneDrive\Desktop\RLA2\results\q1c_alns_results.json
+
+Output log saved to C:\Users\15867\OneDrive\Desktop\RLA2\results\q1c_alns_output.txt

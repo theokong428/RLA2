@@ -1,0 +1,55 @@
+{
+  "top_k": [
+    140,
+    120,
+    90
+  ],
+  "deep_iter": 10000,
+  "deep_seeds": 10,
+  "best_k": 140,
+  "deep_time": 845.2781898975372,
+  "per_k": {
+    "140": {
+      "best_cost": {
+        "total": 1176442.2051742033,
+        "build": 335000.0,
+        "maintenance": 268000.0,
+        "charging": 60442.20517420332,
+        "transport": 513000.0,
+        "n_stations": 67,
+        "transport_count": 513,
+        "seed": 503
+      },
+      "mean_total": 1209308.6709537911,
+      "std_total": 19214.007078787938
+    },
+    "120": {
+      "best_cost": {
+        "total": 1188883.189053749,
+        "build": 335000.0,
+        "maintenance": 268000.0,
+        "charging": 68883.18905374901,
+        "transport": 517000.0,
+        "n_stations": 67,
+        "transport_count": 517,
+        "seed": 504
+      },
+      "mean_total": 1214419.9835932995,
+      "std_total": 22542.018836501742
+    },
+    "90": {
+      "best_cost": {
+        "total": 1177570.5666373004,
+        "build": 335000.0,
+        "maintenance": 268000.0,
+        "charging": 66570.5666373003,
+        "transport": 508000.0,
+        "n_stations": 67,
+        "transport_count": 508,
+        "seed": 508
+      },
+      "mean_total": 1193226.932438313,
+      "std_total": 11539.455780150553
+    }
+  }
+}
